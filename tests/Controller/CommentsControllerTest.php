@@ -3,69 +3,57 @@
 /**
  * This file is part of the TODO App project.
  *
- * (c) Hlib Ivanov <email@example.com>
+ * (c) Hlib Ivanov.
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For license information, see the LICENSE file.
  */
 
 namespace App\Tests\Controller;
 
 use App\Entity\Comment;
 use App\Entity\Photo;
+use App\Entity\Gallery;
 use App\Entity\User;
 use App\Repository\CommentsRepository;
 use App\Repository\PhotosRepository;
+use App\Repository\GalleriesRepository;
 use App\Repository\UserRepository;
 use App\Service\CommentsService;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * Test class for CommentsController.
+ * Class CommentsControllerTest.
  *
- * Provides functional tests for comment-related routes and
- * verifies creation, display, and deletion of comments.
+ * Functional tests for the CommentsController.
  */
 class CommentsControllerTest extends WebTestCase
 {
-    /**
-     * HTTP client used for simulating browser requests.
-     */
     private KernelBrowser $httpClient;
+    private User $adminUser;
 
-    /**
-     * Base route for CommentsController.
-     *
-     * @var string
-     */
     public const TEST_ROUTE = '/Comments';
 
-    /**
-     * Setup test client before each test.
-     */
-    protected function setUp(): void
-    {
-        $this->httpClient = static::createClient();
-    }
+    /*** Public Test Methods ***/
 
     /**
-     * Test index route returns HTTP 200 status.
+     * Tests the index route of CommentsController.
+     *
+     * @return void Returns nothing. Asserts that the index route responds successfully.
      */
     public function testIndexRoute(): void
     {
         $this->httpClient->request('GET', self::TEST_ROUTE.'/');
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(200, $status);
+        $this->assertResponseIsSuccessful();
     }
 
     /**
-     * Test displaying a single comment using a mock CommentsService.
+     * Tests showing a comment using a mock CommentsService.
+     *
+     * @return void Returns nothing. Asserts that the GET request to the comment's page returns HTTP 200.
      */
     public function testShowCommentWithMock(): void
     {
-        $expectedStatus = 200;
-
         $photo = $this->createPhoto();
         $comment = new Comment();
         $comment->setEmail('test@example.com');
@@ -73,103 +61,134 @@ class CommentsControllerTest extends WebTestCase
         $comment->setText('Test comment');
         $comment->setPhoto($photo);
 
-        // Mock service, since GET should not call save()
-        $commentService = $this->createMock(CommentsService::class);
-        static::getContainer()->set(CommentsService::class, $commentService);
-
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
+        $mockService = $this->createMock(CommentsService::class);
+        static::getContainer()->set(CommentsService::class, $mockService);
 
         $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$comment->getId());
-        $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertEquals($expectedStatus, $status);
+        $this->assertEquals(200, $this->httpClient->getResponse()->getStatusCode());
     }
 
     /**
-     * Test that create comment form page loads successfully.
+     * Tests rendering the comment creation form.
+     *
+     * @return void Returns nothing. Asserts the creation form page renders successfully.
      */
     public function testCreateCommentForm(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
-
         $photo = $this->createPhoto();
-
         $this->httpClient->request('GET', self::TEST_ROUTE.'/create/'.$photo->getId().'/photo');
-        $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertEquals(200, $status);
+        $this->assertResponseIsSuccessful();
     }
 
     /**
-     * Test submitting the create comment form redirects after save.
+     * Tests submitting a new comment.
+     *
+     * @return void Returns nothing. Asserts redirection occurs and comment text appears after redirect.
      */
     public function testCreateCommentSubmit(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
-
         $photo = $this->createPhoto();
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/create/'.$photo->getId().'/photo');
-        $this->httpClient->submitForm('Dodaj', [
-            'comments' => [
-                'nick' => 'Tester',
-                'email' => 'test@example.com',
-                'text'  => 'Comment content',
-            ],
-        ]);
+        $crawler = $this->httpClient->request('GET', self::TEST_ROUTE.'/create/'.$photo->getId().'/photo');
+        $this->assertResponseIsSuccessful();
 
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status);
+        $form = $crawler->selectButton('Dodaj')->form();
+        $form['comments[nick]'] = 'TestUser';
+        $form['comments[email]'] = 'test@example.com';
+        $form['comments[text]'] = 'This is a test comment';
+
+        $this->httpClient->submit($form);
+
+        $this->assertResponseRedirects(self::TEST_ROUTE.'/');
+        $this->httpClient->followRedirect();
+
+        $this->assertSelectorTextContains('body', 'This is a test comment');
     }
 
     /**
-     * Test deleting a comment redirects after delete.
+     * Tests deleting a comment.
+     *
+     * @return void Returns nothing. Asserts redirection occurs and comment is removed after deletion.
      */
     public function testDeleteComment(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
-
         $photo = $this->createPhoto();
-        $comment = $this->createComment($photo, $user);
+        $comment = $this->createComment($photo, $this->adminUser);
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$comment->getId().'/delete');
-        $this->httpClient->submitForm('action_delete');
+        $crawler = $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$comment->getId().'/delete');
+        $this->assertResponseIsSuccessful();
 
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status);
+        $form = $crawler->selectButton('action_delete')->form();
+        $this->httpClient->submit($form);
+
+        $this->assertResponseRedirects(self::TEST_ROUTE.'/');
+        $this->httpClient->followRedirect();
+
+        $this->assertSelectorTextNotContains('body', $comment->getText());
+    }
+
+    /*** Protected Methods ***/
+
+    /**
+     * Sets up the test client and logs in an admin user before each test.
+     *
+     * @return void Returns nothing. Initializes client and admin user.
+     */
+    protected function setUp(): void
+    {
+        $this->httpClient = static::createClient();
+        $this->adminUser = $this->createUser(['ROLE_ADMIN']);
+        $this->httpClient->loginUser($this->adminUser);
+    }
+
+    /*** Private Helper Methods ***/
+
+    /**
+     * Creates a gallery for testing purposes.
+     *
+     * @return Gallery returns the created Gallery entity
+     */
+    private function createGallery(): Gallery
+    {
+        $gallery = new Gallery();
+        $gallery->setTitle('Test Gallery');
+
+        $repo = static::getContainer()->get(GalleriesRepository::class);
+        $repo->save($gallery, true);
+
+        return $gallery;
     }
 
     /**
-     * Create and persist a Photo entity for tests.
+     * Creates a photo linked to a gallery.
      *
-     * @return Photo Created photo entity
+     * @return Photo returns the created Photo entity
      */
     private function createPhoto(): Photo
     {
+        $gallery = $this->createGallery();
+
         $photo = new Photo();
         $photo->setTitle('Test Photo');
         $photo->setText('Some description');
         $photo->setFilename('test.jpg');
         $photo->setCreatedAt(new \DateTimeImmutable());
         $photo->setUpdatedAt(new \DateTimeImmutable());
+        $photo->setGallery($gallery);
 
         $repo = static::getContainer()->get(PhotosRepository::class);
-        $repo->save($photo);
+        $repo->save($photo, true);
 
         return $photo;
     }
 
     /**
-     * Create and persist a Comment entity for tests.
+     * Creates a comment linked to a photo and user.
      *
-     * @param Photo $photo Related photo entity
-     * @param User  $user  Author user entity
+     * @param Photo $photo Photo to attach comment to
+     * @param User  $user  User creating the comment
      *
-     * @return Comment Created comment entity
+     * @return Comment returns the created Comment entity
      */
     private function createComment(Photo $photo, User $user): Comment
     {
@@ -180,17 +199,17 @@ class CommentsControllerTest extends WebTestCase
         $comment->setPhoto($photo);
 
         $repo = static::getContainer()->get(CommentsRepository::class);
-        $repo->save($comment);
+        $repo->save($comment, true);
 
         return $comment;
     }
 
     /**
-     * Create and persist a User entity for tests.
+     * Creates a user with given roles.
      *
-     * @param array $roles Roles assigned to the user
+     * @param array $roles Roles for the user
      *
-     * @return User Created user entity
+     * @return User returns the created User entity
      */
     private function createUser(array $roles): User
     {
@@ -202,7 +221,7 @@ class CommentsControllerTest extends WebTestCase
         $user->setPassword($passwordHasher->hashPassword($user, 'p@55w0rd'));
 
         $repo = static::getContainer()->get(UserRepository::class);
-        $repo->save($user);
+        $repo->save($user, true);
 
         return $user;
     }

@@ -1,13 +1,11 @@
 <?php
 
 /**
- * This file is part of the MyProject package.
+ * This file is part of the TODO App project.
  *
- * (c) Your Name <your.email@example.com>
+ * (c) Hlib Ivanov.
  *
- * Functional tests for the PhotosController.
- * These tests verify CRUD operations for Photo entities,
- * including access control, form submissions, and redirects.
+ * For license information, see the LICENSE file.
  */
 
 namespace App\Tests\Controller;
@@ -15,210 +13,178 @@ namespace App\Tests\Controller;
 use App\Entity\Photo;
 use App\Entity\Gallery;
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Service\PhotosService;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use App\Repository\UserRepository;
+use App\Service\GalleriesService;
 
 /**
  * Class PhotosControllerTest.
  *
- * Provides functional tests for the PhotosController routes and forms.
+ * Functional tests for the PhotosController.
  */
 class PhotosControllerTest extends WebTestCase
 {
-    private KernelBrowser $httpClient;
+    private KernelBrowser $client;
+    private PhotosService $photosService;
+    private GalleriesService $galleriesService;
+    private UserRepository $userRepository;
 
-    public const TEST_ROUTE = '/Photos';
-
-    /**
-     * Sets up the test client before each test.
-     *
-     * @return void No value is returned
-     */
-    protected function setUp(): void
-    {
-        $this->httpClient = static::createClient();
-    }
+    /*** Public Test Methods ***/
 
     /**
-     * Test the index route of PhotosController.
+     * Tests the index route of PhotosController.
      *
-     * @return void No value is returned, assertions validate response status
+     * @return void Returns nothing. Asserts that the index route responds successfully (200, 301, or 302).
      */
     public function testIndexRoute(): void
     {
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/');
-        $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertTrue(in_array($status, [200, 301, 302]));
+        $this->client->request('GET', '/Photos/');
+        $this->assertContains(
+            $this->client->getResponse()->getStatusCode(),
+            [200, 301, 302]
+        );
     }
 
     /**
-     * Test showing a single photo page.
+     * Tests displaying a single photo.
      *
-     * @return void No value is returned, assertions validate response status
+     * @return void Returns nothing. Asserts that a GET request to the photo's page returns a 200 status code.
      */
     public function testShowPhoto(): void
     {
-        $expectedStatus = 200;
+        $user = $this->createUser();
+        $this->client->loginUser($user);
 
         $photo = $this->createPhoto();
 
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
-
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$photo->getId());
-        $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertEquals($expectedStatus, $status);
+        $this->client->request('GET', '/Photos/'.$photo->getId());
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
     }
 
     /**
-     * Test that the photo creation form loads correctly.
+     * Tests rendering the photo creation form.
      *
-     * @return void No value is returned, assertions validate response status
+     * @return void Returns nothing. Asserts that the creation form page is successfully rendered.
      */
     public function testCreatePhotoForm(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
+        $user = $this->createUser();
+        $this->client->loginUser($user);
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/create');
-        $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertEquals(200, $status);
+        $this->client->request('GET', '/Photos/create');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
     }
 
     /**
-     * Test submitting the create photo form with valid data.
+     * Tests submitting a new photo creation form.
      *
-     * @return void No value is returned, assertions validate redirect status
+     * @return void Returns nothing. Submits the form and asserts a 302 redirect after successful creation.
      */
     public function testCreatePhotoSubmit(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
+        $user = $this->createUser();
+        $this->client->loginUser($user);
 
         $gallery = $this->createGallery();
 
-        // Prepare a fake uploaded file
         $file = new UploadedFile(
-            __DIR__.'/../Fixtures/test.jpg', // must exist in tests/Fixtures
+            __DIR__.'/../Fixtures/test.jpg', // ensure this file exists
             'test.jpg',
             'image/jpeg',
             null,
             true
         );
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/create');
-        $this->httpClient->submitForm('Zapisz', [
+        $this->client->request('GET', '/Photos/create');
+        $this->client->submitForm('Zapisz', [
             'photos' => [
-                'title'   => 'Test Photo',
+                'title'   => 'New Photo',
                 'text'    => 'Photo description',
                 'gallery' => $gallery->getId(),
                 'file'    => $file,
             ],
         ]);
 
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status); // redirect after save
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
     }
 
     /**
-     * Test editing an existing photo.
+     * Tests submitting the photo edit form.
      *
-     * @return void No value is returned, assertions validate redirect status
+     * @return void Returns nothing. Submits the edit form and asserts that changes are persisted.
      */
     public function testEditPhotoSubmit(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
+        $user = $this->createUser();
+        $this->client->loginUser($user);
 
         $photo = $this->createPhoto();
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$photo->getId().'/edit');
-        $this->httpClient->submitForm('Zapisz', [
+        $this->client->request('GET', '/Photos/'.$photo->getId().'/edit');
+        $this->client->submitForm('Zapisz', [
             'photos' => [
                 'title' => 'Edited Photo',
                 'text'  => 'Edited description',
             ],
         ]);
 
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status);
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+
+        $updatedPhoto = $this->photosService->getOne($photo->getId());
+        $this->assertSame('Edited Photo', $updatedPhoto->getTitle());
+        $this->assertSame('Edited description', $updatedPhoto->getText());
     }
 
     /**
-     * Test deleting a photo.
+     * Tests deleting a photo.
      *
-     * @return void No value is returned, assertions validate redirect status
+     * @return void Returns nothing. Submits the delete form and asserts that the photo is removed from storage.
      */
     public function testDeletePhoto(): void
     {
-        $user = $this->createUser(['ROLE_ADMIN']);
-        $this->httpClient->loginUser($user);
+        $user = $this->createUser();
+        $this->client->loginUser($user);
 
         $photo = $this->createPhoto();
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$photo->getId().'/delete');
-        $this->httpClient->submitForm('Usuń');
+        $crawler = $this->client->request('GET', '/Photos/'.$photo->getId().'/delete');
+        $form = $crawler->filter('form')->form();
+        $this->client->submit($form);
 
-        $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status);
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertNull($this->photosService->getOne($photo->getId()));
     }
 
+    /*** Protected Methods ***/
+
     /**
-     * Helper method to create a test Photo entity.
+     * Sets up the test client and services before each test.
      *
-     * @return Photo The created Photo entity used for testing
+     * @return void Returns nothing. Initializes the client and service dependencies for tests.
      */
-    private function createPhoto(): Photo
+    protected function setUp(): void
     {
-        $gallery = $this->createGallery();
+        $this->client = static::createClient();
+        $container = static::getContainer();
 
-        $photo = new Photo();
-        $photo->setTitle('Test Photo');
-        $photo->setText('Some description');
-        $photo->setGallery($gallery);
-        $photo->setFilename('test.jpg');
-        $photo->setCreatedAt(new \DateTimeImmutable());
-        $photo->setUpdatedAt(new \DateTimeImmutable());
-
-        /** @var PhotosService $repo */
-        $repo = static::getContainer()->get(PhotosService::class);
-        $repo->save($photo);
-
-        return $photo;
+        $this->photosService = $container->get(PhotosService::class);
+        $this->galleriesService = $container->get(GalleriesService::class);
+        $this->userRepository = $container->get(UserRepository::class);
     }
 
-    /**
-     * Helper method to create a test Gallery entity.
-     *
-     * @return Gallery The created Gallery entity used for testing
-     */
-    private function createGallery(): Gallery
-    {
-        $gallery = new Gallery();
-        $gallery->setTitle('Test Gallery');
-        $gallery->setCreatedAt(new \DateTimeImmutable());
-        $gallery->setUpdatedAt(new \DateTimeImmutable());
-
-        $repo = static::getContainer()->get('App\Service\GalleriesService');
-        $repo->save($gallery);
-
-        return $gallery;
-    }
+    /*** Private Helper Methods ***/
 
     /**
-     * Helper method to create a test User entity.
+     * Creates a user with the given roles.
      *
-     * @param array $roles Roles assigned to the created user
+     * @param array $roles Roles for the new user
      *
-     * @return User The created User entity used for authentication in tests
+     * @return User Returns the created User entity with the specified roles
      */
-    private function createUser(array $roles): User
+    private function createUser(array $roles = ['ROLE_ADMIN']): User
     {
         $passwordHasher = static::getContainer()->get('security.password_hasher');
 
@@ -227,9 +193,49 @@ class PhotosControllerTest extends WebTestCase
         $user->setRoles($roles);
         $user->setPassword($passwordHasher->hashPassword($user, 'p@55w0rd'));
 
-        $repo = static::getContainer()->get(UserRepository::class);
-        $repo->save($user);
+        $this->userRepository->save($user);
 
         return $user;
+    }
+
+    /**
+     * Creates a gallery for testing purposes.
+     *
+     * @return Gallery Returns the created Gallery entity ready to be associated with photos
+     */
+    private function createGallery(): Gallery
+    {
+        $gallery = new Gallery();
+        $gallery->setTitle('Test Gallery');
+        $gallery->setCreatedAt(new \DateTimeImmutable());
+        $gallery->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->galleriesService->save($gallery);
+
+        return $gallery;
+    }
+
+    /**
+     * Creates a photo optionally linked to a provided gallery.
+     *
+     * @param Gallery|null $gallery The gallery to associate the photo with, or null to create a new one
+     *
+     * @return Photo Returns the created Photo entity with a gallery assigned
+     */
+    private function createPhoto(?Gallery $gallery = null): Photo
+    {
+        $gallery ??= $this->createGallery();
+
+        $photo = new Photo();
+        $photo->setTitle('Test Photo');
+        $photo->setText('Photo description');
+        $photo->setGallery($gallery);
+        $photo->setFilename('test.jpg');
+        $photo->setCreatedAt(new \DateTimeImmutable());
+        $photo->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->photosService->save($photo);
+
+        return $photo;
     }
 }

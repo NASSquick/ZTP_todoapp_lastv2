@@ -3,10 +3,9 @@
 /**
  * This file is part of the TODO App project.
  *
- * (c) Hlib Ivanov <email@example.com>
+ * (c) Hlib Ivanov.
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For license information, see the LICENSE file.
  */
 
 namespace App\Tests\Controller;
@@ -19,64 +18,51 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * Test class for GalleriesController.
+ * Class GalleriesControllerTest.
  *
- * Provides functional tests for galleries-related routes,
- * verifying creation, editing, showing, and deletion.
+ * Functional tests for the GalleriesController.
  */
 class GalleriesControllerTest extends WebTestCase
 {
-    /**
-     * HTTP client used for simulating browser requests.
-     */
     private KernelBrowser $httpClient;
+    private GalleriesService $galleryService;
 
-    /**
-     * Base route for GalleriesController.
-     *
-     * @var string
-     */
     public const TEST_ROUTE = '/Galleries';
 
-    /**
-     * Setup test client before each test.
-     */
-    protected function setUp(): void
-    {
-        $this->httpClient = static::createClient();
-    }
+    /*** Public Test Methods ***/
 
     /**
-     * Test index route returns valid HTTP status.
+     * Tests the index route of GalleriesController.
+     *
+     * @return void Returns nothing. Asserts the index route responds with a valid HTTP status.
      */
     public function testIndexRoute(): void
     {
         $this->httpClient->request('GET', self::TEST_ROUTE.'/');
         $status = $this->httpClient->getResponse()->getStatusCode();
-
         $this->assertTrue(in_array($status, [200, 301, 302]));
     }
 
     /**
-     * Test that a gallery can be displayed successfully.
+     * Tests displaying a single gallery.
+     *
+     * @return void Returns nothing. Asserts that GET request returns HTTP 200.
      */
     public function testShowGallery(): void
     {
-        $expectedStatus = 200;
-
         $gallery = $this->createGallery();
-
         $user = $this->createUser(['ROLE_ADMIN']);
         $this->httpClient->loginUser($user);
 
         $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$gallery->getId());
         $status = $this->httpClient->getResponse()->getStatusCode();
-
-        $this->assertEquals($expectedStatus, $status);
+        $this->assertEquals(200, $status);
     }
 
     /**
-     * Test that create gallery form page loads successfully.
+     * Tests rendering the gallery creation form.
+     *
+     * @return void Returns nothing. Asserts that the creation form page is rendered successfully.
      */
     public function testCreateGalleryForm(): void
     {
@@ -85,99 +71,114 @@ class GalleriesControllerTest extends WebTestCase
 
         $this->httpClient->request('GET', self::TEST_ROUTE.'/create');
         $status = $this->httpClient->getResponse()->getStatusCode();
-
         $this->assertEquals(200, $status);
     }
 
     /**
-     * Test submitting create gallery form redirects after save.
+     * Tests submitting a new gallery creation form.
+     *
+     * @return void Returns nothing. Asserts a 302 redirect occurs after successful creation.
      */
     public function testCreateGallerySubmit(): void
     {
         $user = $this->createUser(['ROLE_ADMIN']);
         $this->httpClient->loginUser($user);
 
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/create');
-        $this->httpClient->submitForm('Zapisz', [
-            'galleries' => [
-                'title' => 'New Gallery',
-            ],
+        $crawler = $this->httpClient->request('GET', self::TEST_ROUTE.'/create');
+        $form = $crawler->selectButton('Zapisz')->form([
+            'galleries[title]' => 'New Gallery Test',
         ]);
 
+        $this->httpClient->submit($form);
         $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status); // redirect after save
+        $this->assertEquals(302, $status);
     }
 
     /**
-     * Test editing a gallery redirects after edit.
+     * Tests submitting the gallery edit form.
+     *
+     * @return void Returns nothing. Asserts a 302 redirect occurs after editing.
      */
     public function testEditGallerySubmit(): void
     {
+        $gallery = $this->createGallery();
         $user = $this->createUser(['ROLE_ADMIN']);
         $this->httpClient->loginUser($user);
 
-        $gallery = $this->createGallery();
-
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$gallery->getId().'/edit');
-        $this->httpClient->submitForm('Zapisz', [
-            'galleries' => [
-                'title' => 'Edited Gallery',
-            ],
+        $crawler = $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$gallery->getId().'/edit');
+        $form = $crawler->selectButton('Zapisz')->form([
+            'galleries[title]' => 'Edited Gallery Test',
         ]);
 
+        $this->httpClient->submit($form);
         $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status); // redirect after edit
+        $this->assertEquals(302, $status);
     }
 
     /**
-     * Test deleting a gallery redirects after delete.
+     * Tests deleting a gallery.
+     *
+     * @return void Returns nothing. Asserts a 302 redirect occurs after deleting a gallery.
      */
     public function testDeleteGallery(): void
     {
+        $gallery = $this->createGallery();
         $user = $this->createUser(['ROLE_ADMIN']);
         $this->httpClient->loginUser($user);
 
-        $gallery = $this->createGallery();
-
-        $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$gallery->getId().'/delete');
-        $this->httpClient->submitForm('Usuń'); // delete button in Twig
+        $crawler = $this->httpClient->request('GET', self::TEST_ROUTE.'/'.$gallery->getId().'/delete');
+        $form = $crawler->selectButton('Usuń')->form();
+        $this->httpClient->submit($form);
 
         $status = $this->httpClient->getResponse()->getStatusCode();
-        $this->assertEquals(302, $status); // redirect after delete
+        $this->assertEquals(302, $status);
     }
 
+    /*** Protected Methods ***/
+
     /**
-     * Create and persist a Gallery entity for tests.
+     * Sets up the test client and service before each test.
      *
-     * @return Gallery Created gallery entity
+     * @return void Returns nothing. Initializes the client and service dependencies.
+     */
+    protected function setUp(): void
+    {
+        $this->httpClient = static::createClient();
+        $this->galleryService = static::getContainer()->get(GalleriesService::class);
+    }
+
+    /*** Private Helper Methods ***/
+
+    /**
+     * Creates a gallery for testing purposes.
+     *
+     * @return Gallery returns the created Gallery entity ready to be used in tests
      */
     private function createGallery(): Gallery
     {
         $gallery = new Gallery();
-        $gallery->setTitle('Test Gallery');
+        $gallery->setTitle('Test Gallery '.uniqid());
         $gallery->setCreatedAt(new \DateTimeImmutable());
         $gallery->setUpdatedAt(new \DateTimeImmutable());
 
-        /** @var GalleriesService $repo */
-        $repo = static::getContainer()->get(GalleriesService::class);
-        $repo->save($gallery);
+        $this->galleryService->save($gallery);
 
         return $gallery;
     }
 
     /**
-     * Create and persist a User entity for tests.
+     * Creates a user with given roles.
      *
-     * @param array $roles Roles assigned to the user
+     * @param array $roles Roles for the new user
      *
-     * @return User Created user entity
+     * @return User Returns the created User entity with the specified roles
      */
     private function createUser(array $roles): User
     {
         $passwordHasher = static::getContainer()->get('security.password_hasher');
 
         $user = new User();
-        $user->setEmail('user@example.com');
+        $user->setEmail('user'.uniqid().'@example.com');
         $user->setRoles($roles);
         $user->setPassword($passwordHasher->hashPassword($user, 'p@55w0rd'));
 
