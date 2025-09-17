@@ -606,32 +606,108 @@
         <target>Proszę wybrać prawidłowy tydzień.</target>
       </trans-unit>
       <trans-unit id="KI6NgAF" resname="Email is required.">
-        <source>Email is required.</source>
-        <target>__Email is required.</target>
+          <source>Email is required.</source>
+          <target>Email jest wymagany.</target>
       </trans-unit>
       <trans-unit id="X0OLjzX" resname="Please provide a valid email address.">
-        <source>Please provide a valid email address.</source>
-        <target>__Please provide a valid email address.</target>
+          <source>Please provide a valid email address.</source>
+          <target>Proszę podać prawidłowy adres e-mail.</target>
       </trans-unit>
       <trans-unit id="vQth1G4" resname="Nickname is required.">
-        <source>Nickname is required.</source>
-        <target>__Nickname is required.</target>
+          <source>Nickname is required.</source>
+          <target>Pseudonim jest wymagany.</target>
       </trans-unit>
       <trans-unit id="2ZRBuQq" resname="Comment text is required.">
-        <source>Comment text is required.</source>
-        <target>__Comment text is required.</target>
+          <source>Comment text is required.</source>
+          <target>Treść komentarza jest wymagana.</target>
       </trans-unit>
       <trans-unit id="hFRGJNf" resname="Galleries title is required.">
-        <source>Galleries title is required.</source>
-        <target>__Galleries title is required.</target>
+          <source>Galleries title is required.</source>
+          <target>Tytuł galerii jest wymagany.</target>
       </trans-unit>
       <trans-unit id="RNmd5LF" resname="Photo title is required.">
-        <source>Photo title is required.</source>
-        <target>__Photo title is required.</target>
+          <source>Photo title is required.</source>
+          <target>Tytuł zdjęcia jest wymagany.</target>
       </trans-unit>
       <trans-unit id="K8p1k.S" resname="Photo description is required.">
-        <source>Photo description is required.</source>
-        <target>__Photo description is required.</target>
+          <source>Photo description is required.</source>
+          <target>Opis zdjęcia jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="photo_selection_required" resname="Photo selection is required.">
+          <source>Photo selection is required.</source>
+          <target>Wybór zdjęcia jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="gallery_title_required" resname="Gallery title is required.">
+          <source>Gallery title is required.</source>
+          <target>Tytuł galerii jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="photo_title_required" resname="Photo title is required.">
+          <source>Photo title is required.</source>
+          <target>Tytuł zdjęcia jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="title_min_length" resname="Title must be at least {{ limit }} characters long.">
+          <source>Title must be at least {{ limit }} characters long.</source>
+          <target>Tytuł musi mieć co najmniej {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="title_max_length" resname="Title cannot be longer than {{ limit }} characters.">
+          <source>Title cannot be longer than {{ limit }} characters.</source>
+          <target>Tytuł nie może być dłuższy niż {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="photo_description_required" resname="Photo description is required.">
+          <source>Photo description is required.</source>
+          <target>Opis zdjęcia jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="description_min_length" resname="Description must be at least {{ limit }} characters long.">
+          <source>Description must be at least {{ limit }} characters long.</source>
+          <target>Opis musi mieć co najmniej {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="description_max_length" resname="Description cannot be longer than {{ limit }} characters.">
+          <source>Description cannot be longer than {{ limit }} characters.</source>
+          <target>Opis nie może być dłuższy niż {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="filename_required" resname="Filename is required.">
+          <source>Filename is required.</source>
+          <target>Nazwa pliku jest wymagana.</target>
+      </trans-unit>
+      <trans-unit id="gallery_selection_required" resname="Gallery selection is required.">
+          <source>Gallery selection is required.</source>
+          <target>Wybór galerii jest wymagany.</target>
+      </trans-unit>
+      <trans-unit id="nickname_min_length" resname="Nickname must be at least {{ limit }} character.">
+          <source>Nickname must be at least {{ limit }} character.</source>
+          <target>Nick musi mieć co najmniej {{ limit }} znak.</target>
+      </trans-unit>
+      <trans-unit id="comment_min_length" resname="Comment must be at least {{ limit }} character.">
+          <source>Comment must be at least {{ limit }} character.</source>
+          <target>Komentarz musi mieć co najmniej {{ limit }} znak.</target>
+      </trans-unit>
+      <trans-unit id="title_not_empty" resname="Title cannot be empty">
+          <source>Title cannot be empty</source>
+          <target>Tytuł nie może być pusty</target>
+      </trans-unit>
+      <trans-unit id="title_min_length_simple" resname="Title must be at least {{ limit }} characters">
+          <source>Title must be at least {{ limit }} characters</source>
+          <target>Tytuł musi mieć co najmniej {{ limit }} znaków</target>
+      </trans-unit>
+      <trans-unit id="title_min_length_period" resname="Title must be at least {{ limit }} characters.">
+          <source>Title must be at least {{ limit }} characters.</source>
+          <target>Tytuł musi mieć co najmniej {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="description_min_length_simple" resname="Description must be at least {{ limit }} characters.">
+          <source>Description must be at least {{ limit }} characters.</source>
+          <target>Opis musi mieć co najmniej {{ limit }} znaków.</target>
+      </trans-unit>
+      <trans-unit id="email_not_empty" resname="Email cannot be empty">
+          <source>Email cannot be empty</source>
+          <target>Email nie może być pusty</target>
+      </trans-unit>
+      <trans-unit id="firstname_not_empty" resname="First name cannot be empty">
+          <source>First name cannot be empty</source>
+          <target>Imię nie może być puste</target>
+      </trans-unit>
+      <trans-unit id="lastname_not_empty" resname="Last name cannot be empty">
+          <source>Last name cannot be empty</source>
+          <target>Nazwisko nie może być puste</target>
       </trans-unit>
     </body>
   </file>
