@@ -8,12 +8,13 @@ namespace App\Controller;
 
 use App\Entity\Gallery;
 use App\Form\GalleriesType;
-use App\Service\GalleriesService;
+// use App\Service\GalleriesService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\GalleriesServiceInterface;
 
 /**
  * GalleriesController handles CRUD operations for galleries.
@@ -21,14 +22,14 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/Galleries')]
 class GalleriesController extends AbstractController
 {
-    private GalleriesService $galleriesService;
+    private GalleriesServiceInterface $galleriesService;
 
     /**
      * GalleriesController constructor.
      *
      * @param GalleriesService $galleriesService Service for handling galleries
      */
-    public function __construct(GalleriesService $galleriesService)
+    public function __construct(GalleriesServiceInterface $galleriesService)
     {
         $this->galleriesService = $galleriesService;
     }

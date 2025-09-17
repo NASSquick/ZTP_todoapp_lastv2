@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the TODO App project.
+ *
+ * (c) Hlib Ivanov
+ *
+ * Unit tests for the PhotosService class.
+ * Ensures correct behavior for paginated list creation, retrieval, saving, and deleting photos.
+ */
+
 namespace App\Tests\Service;
 
 use App\Entity\Photo;
@@ -13,8 +22,23 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Doctrine\ORM\QueryBuilder;
 
+/**
+ * Class PhotosServiceTest.
+ *
+ * Tests PhotosService functionality:
+ * - createPaginatedList()
+ * - getOne()
+ * - getOneWithComments()
+ * - save()
+ * - delete()
+ */
 class PhotosServiceTest extends TestCase
 {
+    /**
+     * Test creation of a paginated list of photos.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testCreatePaginatedList(): void
     {
         $page = 1;
@@ -46,6 +70,11 @@ class PhotosServiceTest extends TestCase
         $this->assertSame($paginationMock, $result);
     }
 
+    /**
+     * Test retrieving a single photo by ID.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testGetOne(): void
     {
         $photo = new Photo();
@@ -66,6 +95,11 @@ class PhotosServiceTest extends TestCase
         $this->assertSame($photo, $service->getOne(1));
     }
 
+    /**
+     * Test retrieving a photo along with its comments.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testGetOneWithComments(): void
     {
         $photo = new Photo();
@@ -95,6 +129,11 @@ class PhotosServiceTest extends TestCase
         $this->assertSame(['photo' => $photo, 'comments' => $comments], $result);
     }
 
+    /**
+     * Test retrieving a photo that does not exist.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testGetOneWithCommentsNotFound(): void
     {
         $photosRepoMock = $this->createMock(PhotosRepository::class);
@@ -113,6 +152,11 @@ class PhotosServiceTest extends TestCase
         $this->assertNull($service->getOneWithComments(1));
     }
 
+    /**
+     * Test saving a photo with an uploaded file.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testSaveWithFile(): void
     {
         $photo = new Photo();
@@ -143,6 +187,11 @@ class PhotosServiceTest extends TestCase
         $this->assertInstanceOf(\DateTime::class, $photo->getUpdatedAt());
     }
 
+    /**
+     * Test saving a photo without an uploaded file.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testSaveWithoutFile(): void
     {
         $photo = new Photo();
@@ -165,6 +214,11 @@ class PhotosServiceTest extends TestCase
         $this->assertNull($photo->getFilename());
     }
 
+    /**
+     * Test deleting a photo.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testDelete(): void
     {
         $photo = new Photo();

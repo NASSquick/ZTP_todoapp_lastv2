@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the TODO App project.
+ *
+ * (c) Hlib Ivanov
+ *
+ * Unit tests for the UserService class.
+ * Ensures correct behavior for saving users with or without password updates.
+ */
+
 namespace App\Tests\Service;
 
 use App\Entity\User;
@@ -8,8 +17,21 @@ use App\Service\UserService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+/**
+ * Class UserServiceTest.
+ *
+ * Tests UserService functionality:
+ * - Saving a user without changing the password
+ * - Saving a user with password update and hashing
+ */
 class UserServiceTest extends TestCase
 {
+    /**
+     * Test saving a user without providing a new password.
+     * The existing password should remain unchanged.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testSaveWithoutPassword(): void
     {
         $user = new User();
@@ -32,6 +54,12 @@ class UserServiceTest extends TestCase
         $this->assertEquals('original_password', $user->getPassword());
     }
 
+    /**
+     * Test saving a user with a new password provided.
+     * The password should be hashed and updated correctly.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testSaveWithPassword(): void
     {
         $user = new User();

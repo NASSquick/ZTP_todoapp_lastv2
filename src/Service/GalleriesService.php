@@ -18,7 +18,7 @@ use Knp\Component\Pager\PaginatorInterface;
  *
  * Provides methods to manage Gallery entities and fetch their photos.
  */
-class GalleriesService implements TaskServiceInterface
+class GalleriesService implements GalleriesServiceInterface
 {
     /**
      * Galleries repository.

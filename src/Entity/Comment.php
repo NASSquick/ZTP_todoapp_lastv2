@@ -8,7 +8,7 @@ namespace App\Entity;
 
 use App\Repository\CommentsRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Timestampable\Traits\TimestampableEntity;
+use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -20,20 +20,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'comments')]
 class Comment
 {
-    use TimestampableEntity;
-
-    /**
-     * Comment constructor.
-     *
-     * Initializes fields with empty strings to avoid null values.
-     */
-    public function __construct()
-    {
-        $this->text = '';
-        $this->nick = '';
-        $this->email = '';
-    }
-
     /**
      * Primary key.
      *
@@ -45,13 +31,28 @@ class Comment
     private ?int $id = null;
 
     /**
+     * Creation timestamp.
+     *
+     * @var \DateTimeInterface Creation date and time of the comment
+     */
+    #[ORM\Column(type: 'datetime')]
+    #[Gedmo\Timestampable(on: 'create')]
+    private \DateTimeInterface $createdAt;
+
+    /**
+     * Update timestamp.
+     *
+     * @var \DateTimeInterface|null Last update date and time of the comment
+     */
+    #[ORM\Column(type: 'datetime')]
+    #[Gedmo\Timestampable(on: 'update')]
+    private ?\DateTimeInterface $updatedAt = null;
+
+    /**
      * Email of the comment author.
      */
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(
-        message: 'Email is required.',
-        normalizer: 'trim'
-    )]
+    #[Assert\NotBlank(message: 'Email is required.', normalizer: 'trim')]
     #[Assert\Email(message: 'Please provide a valid email address.')]
     private ?string $email = null;
 
@@ -59,20 +60,14 @@ class Comment
      * Nickname of the comment author.
      */
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(
-        message: 'Nickname is required.',
-        normalizer: 'trim'
-    )]
+    #[Assert\NotBlank(message: 'Nickname is required.', normalizer: 'trim')]
     private ?string $nick = null;
 
     /**
      * Text of the comment.
      */
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\NotBlank(
-        message: 'Comment text is required.',
-        normalizer: 'trim'
-    )]
+    #[Assert\NotBlank(message: 'Comment text is required.', normalizer: 'trim')]
     private ?string $text = null;
 
     /**
@@ -82,7 +77,16 @@ class Comment
      */
     #[ORM\ManyToOne(targetEntity: Photo::class)]
     #[ORM\JoinColumn(name: 'photo_id', referencedColumnName: 'id', nullable: false)]
+    #[Assert\NotNull(message: 'Photo selection is required.')]
     private ?Photo $photo = null;
+
+    /**
+     * Comment constructor.
+     */
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
 
     /**
      * Get the comment ID.
@@ -92,6 +96,54 @@ class Comment
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * Get the creation timestamp.
+     *
+     * @return \DateTimeInterface Creation date and time of the comment
+     */
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * Set the creation timestamp.
+     *
+     * @param \DateTimeInterface $createdAt Creation date and time
+     *
+     * @return self Returns the current Comment instance
+     */
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * Get the update timestamp.
+     *
+     * @return \DateTimeInterface|null Last update date and time of the comment
+     */
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * Set the update timestamp.
+     *
+     * @param \DateTimeInterface $updatedAt Last update date and time
+     *
+     * @return self Returns the current Comment instance
+     */
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
     /**

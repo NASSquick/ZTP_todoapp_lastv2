@@ -11,6 +11,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 /**
  * Class GalleriesType.
@@ -36,8 +38,20 @@ class GalleriesType extends AbstractType
             [
                 'label' => 'label_title',
                 'required' => true,
-                'trim' => true, // trim whitespace before submission
+                'trim' => true, // trims whitespace before submission
                 'attr' => ['maxlength' => 64],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Title cannot be empty',
+                        'normalizer' => 'trim', // trims spaces before checking
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'max' => 64,
+                        'minMessage' => 'Title must be at least {{ limit }} characters',
+                        'maxMessage' => 'Title cannot be longer than {{ limit }} characters',
+                    ]),
+                ],
             ]
         );
     }

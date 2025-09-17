@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Gallery
 {
     /**
-     * Primary key (Galleries ID).
+     * Primary key (Gallery ID).
      *
      * @var int|null The unique identifier of the gallery
      */
@@ -33,7 +33,7 @@ class Gallery
     private ?int $id = null;
 
     /**
-     * Creation timestamp of the gallery.
+     * Creation timestamp.
      *
      * @var \DateTimeInterface|null The date and time when the gallery was created
      */
@@ -43,7 +43,7 @@ class Gallery
     private ?\DateTimeInterface $createdAt = null;
 
     /**
-     * Last update timestamp of the gallery.
+     * Last update timestamp.
      *
      * @var \DateTimeInterface|null The date and time when the gallery was last updated
      */
@@ -53,31 +53,28 @@ class Gallery
     private ?\DateTimeInterface $updatedAt = null;
 
     /**
-     * Galleries title.
+     * Gallery title.
      *
-     * @var string|null The human-readable title of the gallery
+     * @var string|null Human-readable title of the gallery
      */
     #[ORM\Column(type: 'string', length: 64)]
     #[Assert\Type(type: 'string')]
-    #[Assert\NotBlank(
-        message: 'Galleries title is required.',
-        normalizer: 'trim'   // trims whitespace before validation
-    )]
+    #[Assert\NotBlank(message: 'Gallery title is required.', normalizer: 'trim')]
     #[Assert\Length(min: 3, max: 64)]
     private ?string $title = null;
 
     /**
      * Photos contained in this gallery.
      *
-     * @var Collection<int, Photo> Collection of Photos objects associated with this gallery
+     * @var Collection<int, Photo> Collection of Photo objects associated with this gallery
      */
-    // #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Photo::class, fetch: 'EXTRA_LAZY', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'gallery', targetEntity: Photo::class, cascade: ['remove'], orphanRemoval: true)]
     private Collection $photos;
 
     /**
      * Slug code derived from title.
      *
-     * @var string|null The slug representation of the gallery title
+     * @var string|null Slug representation of the gallery title
      */
     #[ORM\Column(type: 'string', length: 64)]
     #[Assert\Type(type: 'string')]
@@ -86,7 +83,7 @@ class Gallery
     private ?string $code = null;
 
     /**
-     * Galleries constructor.
+     * Gallery constructor.
      *
      * Initializes the photos collection.
      */
@@ -98,7 +95,7 @@ class Gallery
     /**
      * Get the gallery ID.
      *
-     * @return int|null The unique identifier of the gallery
+     * @return int|null Returns the unique identifier of the gallery
      */
     public function getId(): ?int
     {
@@ -108,7 +105,7 @@ class Gallery
     /**
      * Get the creation timestamp.
      *
-     * @return \DateTimeInterface|null The date and time when the gallery was created
+     * @return \DateTimeInterface|null Returns the creation timestamp
      */
     public function getCreatedAt(): ?\DateTimeInterface
     {
@@ -118,17 +115,21 @@ class Gallery
     /**
      * Set the creation timestamp.
      *
-     * @param \DateTimeInterface $createdAt The date and time to set as creation time
+     * @param \DateTimeInterface $createdAt Creation timestamp
+     *
+     * @return self Returns the current Gallery instance
      */
-    public function setCreatedAt(\DateTimeInterface $createdAt): void
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+
+        return $this;
     }
 
     /**
      * Get the last update timestamp.
      *
-     * @return \DateTimeInterface|null The date and time when the gallery was last updated
+     * @return \DateTimeInterface|null Returns the last update timestamp
      */
     public function getUpdatedAt(): ?\DateTimeInterface
     {
@@ -138,17 +139,21 @@ class Gallery
     /**
      * Set the last update timestamp.
      *
-     * @param \DateTimeInterface $updatedAt The date and time to set as last update time
+     * @param \DateTimeInterface $updatedAt Last update timestamp
+     *
+     * @return self Returns the current Gallery instance
      */
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
     }
 
     /**
      * Get the gallery title.
      *
-     * @return string|null The title of the gallery
+     * @return string|null Returns the gallery title
      */
     public function getTitle(): ?string
     {
@@ -158,17 +163,21 @@ class Gallery
     /**
      * Set the gallery title.
      *
-     * @param string|null $title The title to assign to the gallery
+     * @param string|null $title The gallery title
+     *
+     * @return self Returns the current Gallery instance
      */
-    public function setTitle(?string $title): void
+    public function setTitle(?string $title): self
     {
         $this->title = $title;
+
+        return $this;
     }
 
     /**
      * Get all photos in the gallery.
      *
-     * @return Collection<int, Photo> Collection of Photos objects
+     * @return Collection<int, Photo> Returns a collection of Photo entities
      */
     public function getPhotos(): Collection
     {
@@ -176,9 +185,44 @@ class Gallery
     }
 
     /**
+     * Add a photo to the gallery.
+     *
+     * @param Photo $photo Photo entity to add
+     *
+     * @return self Returns the current Gallery instance
+     */
+    public function addPhoto(Photo $photo): self
+    {
+        if (!$this->photos->contains($photo)) {
+            $this->photos[] = $photo;
+            $photo->setGallery($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a photo from the gallery.
+     *
+     * @param Photo $photo Photo entity to remove
+     *
+     * @return self Returns the current Gallery instance
+     */
+    public function removePhoto(Photo $photo): self
+    {
+        if ($this->photos->removeElement($photo)) {
+            if ($photo->getGallery() === $this) {
+                $photo->setGallery(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Get the slug code of the gallery.
      *
-     * @return string|null Slug derived from the title
+     * @return string|null Returns the slug code
      */
     public function getCode(): ?string
     {
@@ -188,9 +232,9 @@ class Gallery
     /**
      * Set the slug code of the gallery.
      *
-     * @param string $code Slug to assign
+     * @param string $code Slug code to set
      *
-     * @return self The current gallery object
+     * @return self Returns the current Gallery instance
      */
     public function setCode(string $code): self
     {

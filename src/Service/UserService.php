@@ -13,7 +13,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 /**
  * Class UserService.
  */
-class UserService
+class UserService implements UserServiceInterface
 {
     private UserRepository $userRepository;
     private UserPasswordHasherInterface $passwordHasher;

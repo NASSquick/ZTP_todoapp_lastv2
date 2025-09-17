@@ -13,12 +13,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 /**
  * Class CommentsType.
  *
- * Defines the form used for creating and editing Comments entities.
- * Ensures that nick, email, and text fields cannot be empty or whitespace-only.
+ * Defines the form used for creating and editing Comment entities.
+ * Adds validation so fields cannot be empty or whitespace-only.
  */
 class CommentsType extends AbstractType
 {
@@ -27,8 +29,6 @@ class CommentsType extends AbstractType
      *
      * This method is called for each type in the hierarchy starting from the
      * top most type. Type extensions can further modify the form.
-     *
-     * @see FormTypeExtensionInterface::buildForm()
      *
      * @param FormBuilderInterface $builder The form builder
      * @param array                $options The options
@@ -40,10 +40,22 @@ class CommentsType extends AbstractType
             TextType::class,
             [
                 'label' => 'label_nick',
-                // 'required' => true, removed because entity validation handles it
-                'trim' => true,              // trims whitespace
-                'empty_data' => '',          // ensures value is never null
+                'required' => true,
+                'trim' => true,
+                'empty_data' => '',
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Nickname is required.',
+                        'normalizer' => 'trim',
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'max' => 255,
+                        'minMessage' => 'Nickname must be at least {{ limit }} character.',
+                        'maxMessage' => 'Nickname cannot be longer than {{ limit }} characters.',
+                    ]),
+                ],
             ]
         );
 
@@ -52,10 +64,16 @@ class CommentsType extends AbstractType
             EmailType::class,
             [
                 'label' => 'label_email',
-                // 'required' => true, removed
+                'required' => true,
                 'trim' => true,
                 'empty_data' => '',
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Email is required.',
+                        'normalizer' => 'trim',
+                    ]),
+                ],
             ]
         );
 
@@ -64,10 +82,22 @@ class CommentsType extends AbstractType
             TextareaType::class,
             [
                 'label' => 'label_text',
-                // 'required' => true, removed
+                'required' => true,
                 'trim' => true,
                 'empty_data' => '',
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Comment text is required.',
+                        'normalizer' => 'trim',
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'max' => 255,
+                        'minMessage' => 'Comment must be at least {{ limit }} character.',
+                        'maxMessage' => 'Comment cannot be longer than {{ limit }} characters.',
+                    ]),
+                ],
             ]
         );
     }
@@ -79,7 +109,10 @@ class CommentsType extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Comment::class]);
+        $resolver->setDefaults([
+            'data_class' => Comment::class,
+            'required' => true,
+        ]);
     }
 
     /**

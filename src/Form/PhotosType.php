@@ -16,9 +16,14 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Image;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 /**
  * Class PhotosType.
+ *
+ * Defines the form used for creating and editing Photo entities.
+ * Adds validation so fields cannot be empty or whitespace-only.
  */
 class PhotosType extends AbstractType
 {
@@ -28,7 +33,7 @@ class PhotosType extends AbstractType
      * This method is called for each type in the hierarchy starting from the
      * top most type. Type extensions can further modify the form.
      *
-     * @param FormBuilderInterface $builder options
+     * @param FormBuilderInterface $builder The form builder
      * @param array                $options The options
      *
      * @see FormTypeExtensionInterface::buildForm()
@@ -54,38 +59,67 @@ class PhotosType extends AbstractType
                 ),
             ]
         );
+
         $builder->add(
             'title',
             TextType::class,
             [
                 'label' => 'label_title',
-                'empty_data' => '',
                 'required' => true,
-                'trim' => true,        // trim whitespace
+                'trim' => true,
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Photo title is required.',
+                        'normalizer' => 'trim',
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'max' => 64,
+                        'minMessage' => 'Title must be at least {{ limit }} characters.',
+                        'maxMessage' => 'Title cannot be longer than {{ limit }} characters.',
+                    ]),
+                ],
             ]
         );
+
         $builder->add(
             'text',
             TextareaType::class,
             [
                 'label' => 'label_text',
                 'required' => true,
-                'trim' => true,        // trim whitespace
+                'trim' => true,
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Photo description is required.',
+                        'normalizer' => 'trim',
+                    ]),
+                    new Length([
+                        'min' => 1,
+                        'max' => 255,
+                        'minMessage' => 'Description must be at least {{ limit }} characters.',
+                        'maxMessage' => 'Description cannot be longer than {{ limit }} characters.',
+                    ]),
+                ],
             ]
         );
+
         $builder->add(
             'gallery',
             EntityType::class,
             [
                 'class' => Gallery::class,
-                'choice_label' => function ($gallery) {
-                    return $gallery->getTitle();
-                },
+                'choice_label' => fn ($gallery) => $gallery->getTitle(),
                 'label' => 'label_gallery',
                 'placeholder' => 'label_none',
                 'required' => true,
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Gallery selection is required.',
+                    ]),
+                ],
             ]
         );
     }
@@ -93,13 +127,13 @@ class PhotosType extends AbstractType
     /**
      * Configures the options for this type.
      *
-     * @param OptionsResolver $resolver the options resolver
+     * @param OptionsResolver $resolver The resolver for the options
      */
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Photo::class,
-            'required'   => true,
+            'required' => true,
         ]);
     }
 

@@ -12,13 +12,14 @@ namespace App\Controller;
 
 use App\Entity\Comment;
 use App\Form\CommentsType;
-use App\Service\CommentsService;
+// use App\Service\CommentsService;
 use App\Service\PhotosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\CommentsServiceInterface;
 
 /**
  * Controller responsible for managing comments.
@@ -26,16 +27,16 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/Comments')]
 class CommentsController extends AbstractController
 {
-    private CommentsService $commentsService;
+    private CommentsServiceInterface $commentsService;
     private PhotosService $photosService;
 
     /**
      * CommentsController constructor.
      *
-     * @param CommentsService $commentsService service for handling comments
-     * @param PhotosService   $photosService   service for handling photos
+     * @param CommentsServiceInterface $commentsService Service for handling comments
+     * @param PhotosService            $photosService   Service for handling photos
      */
-    public function __construct(CommentsService $commentsService, PhotosService $photosService)
+    public function __construct(CommentsServiceInterface $commentsService, PhotosService $photosService)
     {
         $this->commentsService = $commentsService;
         $this->photosService = $photosService;
@@ -84,25 +85,30 @@ class CommentsController extends AbstractController
     #[Route('/create/{photoId}/photo', name: 'Comments_create', methods: ['GET', 'POST'])]
     public function create(Request $request, int $photoId): Response
     {
-        $photos = $this->photosService->getOne($photoId);
-        if (null === $photos) {
+        $photo = $this->photosService->getOne($photoId);
+        if (null === $photo) {
             return $this->redirectToRoute('Comments_index');
         }
 
         $comment = new Comment();
 
         $form = $this->createForm(CommentsType::class, $comment, [
-            'action' => $this->generateUrl('Comments_create', ['photoId' => $photos->getId()]),
+            'action' => $this->generateUrl('Comments_create', ['photoId' => $photo->getId()]),
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $comment->setPhoto($photos);
+            $comment->setPhoto($photo);
             $this->commentsService->save($comment);
 
             $this->addFlash('success', 'message_created_successfully');
 
             return $this->redirectToRoute('Comments_index');
+        }
+
+        // Optional: add a flash message if form is submitted but invalid
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $this->addFlash('error', 'Comment cannot be empty or only whitespace.');
         }
 
         return $this->render('Comments/create.html.twig', [

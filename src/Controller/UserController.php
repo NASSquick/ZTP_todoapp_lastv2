@@ -11,11 +11,12 @@
 namespace App\Controller;
 
 use App\Form\UserType;
-use App\Service\UserService;
+// use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\UserServiceInterface;
 
 /**
  * Class UserController.
@@ -24,14 +25,14 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/User')]
 class UserController extends AbstractController
 {
-    private UserService $userService;
+    private UserServiceInterface $userService;
 
     /**
      * UserController constructor.
      *
      * @param UserService $userService the user service instance
      */
-    public function __construct(UserService $userService)
+    public function __construct(UserServiceInterface $userService)
     {
         $this->userService = $userService;
     }

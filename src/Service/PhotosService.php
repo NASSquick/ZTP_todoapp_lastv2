@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * Provides methods to manage Photo entities and their comments.
  */
-class PhotosService implements TaskServiceInterface
+class PhotosService implements PhotosServiceInterface, TaskServiceInterface
 {
     public const PAGINATOR_ITEMS_PER_PAGE = 10;
 

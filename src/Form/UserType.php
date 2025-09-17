@@ -15,6 +15,8 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Length;
 
 /**
  * Class UserType.
@@ -41,8 +43,13 @@ class UserType extends AbstractType
                 'label' => 'label_email',
                 'required' => true,
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank(['message' => 'Email cannot be empty', 'normalizer' => 'trim']),
+                    new Length(['max' => 255]),
+                ],
             ]
         );
+
         $builder->add(
             'firstName',
             TextType::class,
@@ -50,8 +57,13 @@ class UserType extends AbstractType
                 'label' => 'label_first_name',
                 'required' => true,
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank(['message' => 'First name cannot be empty', 'normalizer' => 'trim']),
+                    new Length(['max' => 255]),
+                ],
             ]
         );
+
         $builder->add(
             'lastName',
             TextType::class,
@@ -59,6 +71,10 @@ class UserType extends AbstractType
                 'label' => 'label_last_name',
                 'required' => true,
                 'attr' => ['maxlength' => 255],
+                'constraints' => [
+                    new NotBlank(['message' => 'Last name cannot be empty', 'normalizer' => 'trim']),
+                    new Length(['max' => 255]),
+                ],
             ]
         );
         $builder->add(

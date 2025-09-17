@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the TODO App project.
+ *
+ * (c) Hlib Ivanov
+ *
+ * Unit tests for the CommentsService class.
+ * Ensures correct behavior for paginated list creation, saving, and deleting comments.
+ */
+
 namespace App\Tests\Service;
 
 use App\Entity\Comment;
@@ -10,31 +19,39 @@ use Knp\Component\Pager\PaginatorInterface;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class CommentsServiceTest.
+ *
+ * Tests the CommentsService functionality:
+ * - createPaginatedList()
+ * - save()
+ * - delete()
+ */
 class CommentsServiceTest extends TestCase
 {
+    /**
+     * Test that createPaginatedList returns a PaginationInterface object.
+     *
+     * Mocks repository and paginator to verify correct integration.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testCreatePaginatedList(): void
     {
         $page = 1;
 
-        // Mock the QueryBuilder
         $qbMock = $this->createMock(QueryBuilder::class);
 
-        // Mock the repository to return the QueryBuilder
         $repoMock = $this->createMock(CommentsRepository::class);
         $repoMock->expects($this->once())
             ->method('queryAll')
             ->willReturn($qbMock);
 
-        // Mock the paginator to return a PaginationInterface mock
         $paginationMock = $this->createMock(PaginationInterface::class);
         $paginatorMock = $this->createMock(PaginatorInterface::class);
         $paginatorMock->expects($this->once())
             ->method('paginate')
-            ->with(
-                $qbMock,
-                $page,
-                CommentsService::PAGINATOR_ITEMS_PER_PAGE
-            )
+            ->with($qbMock, $page, CommentsService::PAGINATOR_ITEMS_PER_PAGE)
             ->willReturn($paginationMock);
 
         $service = new CommentsService($repoMock, $paginatorMock);
@@ -44,6 +61,11 @@ class CommentsServiceTest extends TestCase
         $this->assertSame($paginationMock, $result);
     }
 
+    /**
+     * Test that save() persists a comment via the repository.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testSave(): void
     {
         $comment = new Comment();
@@ -59,6 +81,11 @@ class CommentsServiceTest extends TestCase
         $service->save($comment);
     }
 
+    /**
+     * Test that delete() removes a comment via the repository.
+     *
+     * @return void this test performs assertions and does not return a value
+     */
     public function testDelete(): void
     {
         $comment = new Comment();

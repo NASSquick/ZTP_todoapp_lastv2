@@ -12,13 +12,14 @@ namespace App\Controller;
 
 use App\Entity\Photo;
 use App\Form\PhotosType;
-use App\Service\PhotosService;
+// use App\Service\PhotosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\PhotosServiceInterface;
 
 /**
  * Controller responsible for managing photos.
@@ -26,14 +27,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/Photos')]
 class PhotosController extends AbstractController
 {
-    private PhotosService $photosService;
+    private PhotosServiceInterface $photosService;
 
     /**
      * Constructor.
      *
      * @param PhotosService $photosService The photos service
      */
-    public function __construct(PhotosService $photosService)
+    public function __construct(PhotosServiceInterface $photosService)
     {
         $this->photosService = $photosService;
     }

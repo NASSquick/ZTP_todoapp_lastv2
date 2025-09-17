@@ -7,6 +7,8 @@
 namespace App\Entity;
 
 use App\Repository\PhotosRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -14,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Class Photo.
  *
- * Represents a photo entity, including title, text, filename, and gallery.
+ * Represents a photo entity, including title, text, filename, gallery, and associated comments.
  */
 #[ORM\Entity(repositoryClass: PhotosRepository::class)]
 #[ORM\Table(name: 'photos')]
@@ -52,28 +54,33 @@ class Photo
      * Title of the photo.
      */
     #[ORM\Column(type: 'string', length: 64)]
-    #[Assert\NotBlank(
-        message: 'Photo title is required.',
-        normalizer: 'trim'
+    #[Assert\NotBlank(message: 'Photo title is required.', normalizer: 'trim')]
+    #[Assert\Length(
+        min: 3,
+        max: 64,
+        minMessage: 'Title must be at least {{ limit }} characters long.',
+        maxMessage: 'Title cannot be longer than {{ limit }} characters.'
     )]
-    #[Assert\Length(min: 3, max: 64)]
     private ?string $title = null;
 
     /**
      * Text description of the photo.
      */
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
-    #[Assert\NotBlank(
-        message: 'Photo description is required.',
-        normalizer: 'trim'
+    #[Assert\NotBlank(message: 'Photo description is required.', normalizer: 'trim')]
+    #[Assert\Length(
+        min: 3,
+        max: 255,
+        minMessage: 'Description must be at least {{ limit }} characters long.',
+        maxMessage: 'Description cannot be longer than {{ limit }} characters.'
     )]
-    #[Assert\Length(min: 3, max: 255)]
     private ?string $text = null;
 
     /**
      * Filename of the photo.
      */
     #[ORM\Column(type: 'string', length: 191)]
+    #[Assert\NotBlank(message: 'Filename is required.')]
     #[Assert\Type(type: 'string')]
     private ?string $filename = null;
 
@@ -81,8 +88,17 @@ class Photo
      * Galleries the photo belongs to.
      */
     #[ORM\ManyToOne(targetEntity: Gallery::class)]
-    #[ORM\JoinColumn(name: 'gallery_id', referencedColumnName: 'id')]
+    #[ORM\JoinColumn(name: 'gallery_id', referencedColumnName: 'id', nullable: false)]
+    #[Assert\NotNull(message: 'Gallery selection is required.')]
     private ?Gallery $gallery = null;
+
+    /**
+     * Comments associated with the photo.
+     *
+     * @var Collection<int, Comment>
+     */
+    #[ORM\OneToMany(mappedBy: 'photo', targetEntity: Comment::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $comments;
 
     /**
      * Photo constructor.
@@ -90,6 +106,7 @@ class Photo
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->comments = new ArrayCollection(); // initialize collection
     }
 
     /**
@@ -139,7 +156,7 @@ class Photo
     /**
      * Set the update timestamp.
      *
-     * @param \DateTimeInterface $updatedAt Last update date and time
+     * @param \DateTimeInterface $updatedAt Last update date and time of the photo
      *
      * @return self Returns the current Photo instance
      */
@@ -242,6 +259,52 @@ class Photo
     public function setFilename(string $filename): self
     {
         $this->filename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * Get all comments associated with this photo.
+     *
+     * @return Collection<int, Comment> Collection of Comment entities
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    /**
+     * Add a comment to this photo.
+     *
+     * @param Comment $comment Comment entity
+     *
+     * @return self Returns the current Photo instance
+     */
+    public function addComment(Comment $comment): self
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setPhoto($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove a comment from this photo.
+     *
+     * @param Comment $comment Comment entity
+     *
+     * @return self Returns the current Photo instance
+     */
+    public function removeComment(Comment $comment): self
+    {
+        if ($this->comments->removeElement($comment)) {
+            // Set owning side to null (optional)
+            if ($comment->getPhoto() === $this) {
+                $comment->setPhoto(null);
+            }
+        }
 
         return $this;
     }

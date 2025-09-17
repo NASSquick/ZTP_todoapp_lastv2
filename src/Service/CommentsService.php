@@ -1,24 +1,23 @@
 <?php
 
-/**
- * Comments service.
+/*
+ This work, including the code samples, is licensed under a Creative Commons BY-SA 3.0 license.
  */
 
 namespace App\Service;
 
 use App\Entity\Comment;
 use App\Repository\CommentsRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Knp\Component\Pager\Pagination\PaginationInterface;
 use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * Class CommentsService.
  *
- * Provides methods to manage Comments entities.
+ * Provides methods to manage Comment entities including
+ * listing, saving, and deleting them.
  */
-class CommentsService implements TaskServiceInterface
+class CommentsService implements CommentsServiceInterface
 {
     public const PAGINATOR_ITEMS_PER_PAGE = 10;
 
@@ -40,9 +39,9 @@ class CommentsService implements TaskServiceInterface
     /**
      * Create a paginated list of comments.
      *
-     * @param int $page Page number
+     * @param int $page The current page number
      *
-     * @return PaginationInterface Paginated list of comments
+     * @return PaginationInterface<string, mixed> Paginated list of Comment entities
      */
     public function createPaginatedList(int $page): PaginationInterface
     {
@@ -56,10 +55,7 @@ class CommentsService implements TaskServiceInterface
     /**
      * Save a comment entity.
      *
-     * @param Comment $comment The comment entity to save
-     *
-     * @throws OptimisticLockException
-     * @throws ORMException
+     * @param Comment $comment The Comment entity to save
      */
     public function save(Comment $comment): void
     {
@@ -69,10 +65,7 @@ class CommentsService implements TaskServiceInterface
     /**
      * Delete a comment entity.
      *
-     * @param Comment $comment The comment entity to delete
-     *
-     * @throws ORMException
-     * @throws OptimisticLockException
+     * @param Comment $comment The Comment entity to delete
      */
     public function delete(Comment $comment): void
     {

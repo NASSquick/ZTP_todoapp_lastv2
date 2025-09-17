@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of the TODO App project.
+ *
+ * (c) Hlib Ivanov <email@example.com>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace App\Tests\Controller;
 
 use App\Entity\Gallery;
@@ -9,18 +18,37 @@ use App\Service\GalleriesService;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * Test class for GalleriesController.
+ *
+ * Provides functional tests for galleries-related routes,
+ * verifying creation, editing, showing, and deletion.
+ */
 class GalleriesControllerTest extends WebTestCase
 {
+    /**
+     * HTTP client used for simulating browser requests.
+     */
     private KernelBrowser $httpClient;
 
+    /**
+     * Base route for GalleriesController.
+     *
+     * @var string
+     */
     public const TEST_ROUTE = '/Galleries';
 
+    /**
+     * Setup test client before each test.
+     */
     protected function setUp(): void
     {
         $this->httpClient = static::createClient();
     }
 
-    // ---------- Index ----------
+    /**
+     * Test index route returns valid HTTP status.
+     */
     public function testIndexRoute(): void
     {
         $this->httpClient->request('GET', self::TEST_ROUTE.'/');
@@ -29,7 +57,9 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertTrue(in_array($status, [200, 301, 302]));
     }
 
-    // ---------- Show ----------
+    /**
+     * Test that a gallery can be displayed successfully.
+     */
     public function testShowGallery(): void
     {
         $expectedStatus = 200;
@@ -45,7 +75,9 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertEquals($expectedStatus, $status);
     }
 
-    // ---------- Create Form ----------
+    /**
+     * Test that create gallery form page loads successfully.
+     */
     public function testCreateGalleryForm(): void
     {
         $user = $this->createUser(['ROLE_ADMIN']);
@@ -57,7 +89,9 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertEquals(200, $status);
     }
 
-    // ---------- Create Submit ----------
+    /**
+     * Test submitting create gallery form redirects after save.
+     */
     public function testCreateGallerySubmit(): void
     {
         $user = $this->createUser(['ROLE_ADMIN']);
@@ -74,7 +108,9 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertEquals(302, $status); // redirect after save
     }
 
-    // ---------- Edit ----------
+    /**
+     * Test editing a gallery redirects after edit.
+     */
     public function testEditGallerySubmit(): void
     {
         $user = $this->createUser(['ROLE_ADMIN']);
@@ -93,7 +129,9 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertEquals(302, $status); // redirect after edit
     }
 
-    // ---------- Delete ----------
+    /**
+     * Test deleting a gallery redirects after delete.
+     */
     public function testDeleteGallery(): void
     {
         $user = $this->createUser(['ROLE_ADMIN']);
@@ -108,7 +146,11 @@ class GalleriesControllerTest extends WebTestCase
         $this->assertEquals(302, $status); // redirect after delete
     }
 
-    // ---------- Helpers ----------
+    /**
+     * Create and persist a Gallery entity for tests.
+     *
+     * @return Gallery Created gallery entity
+     */
     private function createGallery(): Gallery
     {
         $gallery = new Gallery();
@@ -123,6 +165,13 @@ class GalleriesControllerTest extends WebTestCase
         return $gallery;
     }
 
+    /**
+     * Create and persist a User entity for tests.
+     *
+     * @param array $roles Roles assigned to the user
+     *
+     * @return User Created user entity
+     */
     private function createUser(array $roles): User
     {
         $passwordHasher = static::getContainer()->get('security.password_hasher');

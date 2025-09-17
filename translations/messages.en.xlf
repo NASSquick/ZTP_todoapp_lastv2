@@ -60,6 +60,7 @@
       <trans-unit id="56"><source>Month</source><target>Month</target></trans-unit>
       <trans-unit id="57"><source>Day</source><target>Day</target></trans-unit>
       <trans-unit id="58"><source>Email could not be found.</source><target>Email could not be found.</target></trans-unit>
+      <trans-unit id="59"><source>label_view</source><target>View</target></trans-unit>
     </body>
   </file>
 </xliff>
